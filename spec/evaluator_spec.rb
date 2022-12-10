@@ -20,6 +20,16 @@ describe BooleanDsl::Evaluator do
     specify { expect(evaluator.evaluate_comparison(10, '>', 20)).to be_falsey }
     specify { expect(evaluator.evaluate_comparison(20, '<=', 20)).to be_truthy }
     specify { expect(evaluator.evaluate_comparison(20, '>=', 20)).to be_truthy }
+
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'includes', 1)).to be_truthy }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'includes', 0)).to be_falsey }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'includes', 'alpha')).to be_truthy }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'includes', 'beta')).to be_falsey }
+
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'excludes', 1)).to be_falsey }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'excludes', 0)).to be_truthy }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'excludes', 'alpha')).to be_falsey }
+    specify { expect(evaluator.evaluate_comparison([1, 'alpha'], 'excludes', 'beta')).to be_truthy }
   end
 
   context '#evaluate_boolean' do
@@ -53,6 +63,14 @@ describe BooleanDsl::Evaluator do
     specify { expect(outcome_for("alpha == 'beta'", { 'alpha' => 'beta' })).to be_truthy }
     specify { expect(outcome_for("alpha == 'beta'", { 'alpha' => 'delta' })).to be_falsey }
     specify { expect(outcome_for("20.5% < 50%")).to be_truthy }
+    specify { expect(outcome_for("[1,2,3] includes 2")).to be_truthy }
+    specify { expect(outcome_for("['alpha','beta'] includes 'beta'")).to be_truthy }
+    specify { expect(outcome_for("[] includes 'beta'")).to be_falsey }
+    specify { expect(outcome_for("attribute_array includes 'beta'", { "attribute_array" => ["alpha", "beta"]})).to be_truthy }
+    specify { expect(outcome_for("[1,2,3] excludes 2")).to be_falsey }
+    specify { expect(outcome_for("['alpha','beta'] excludes 'beta'")).to be_falsey }
+    specify { expect(outcome_for("[] excludes 'beta'")).to be_truthy }
+    specify { expect(outcome_for("attribute_array excludes 'beta'", { "attribute_array" => ["alpha", "beta"]})).to be_falsey }
   end
 end
 

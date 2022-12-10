@@ -44,6 +44,13 @@ describe BooleanDsl::Parser do
     specify { expect(parser.parse_with_debug("'I am, 12345, \"you\" are'   ")).to eq(string: 'I am, 12345, "you" are') }
   end
 
+  context 'arrays' do
+    specify { expect(parser.parse_with_debug("[]")).to eq(array: []) }
+    specify { expect(parser.parse_with_debug("[1]")).to eq(array: [{ integer: "1" }]) }
+    specify { expect(parser.parse_with_debug("[1,2]")).to eq(array: [{ integer: "1" }, { integer: "2" }]) }
+    specify { expect(parser.parse_with_debug("['alpha','beta']")).to eq(array: [{ string: "alpha" }, { string: "beta" }]) }
+  end
+
   context 'attributes' do
     specify { expect(parser.parse_with_debug("first_name")).to eq(attribute: 'first_name') }
     specify { expect(parser.parse_with_debug("aqf3_cert")).to eq(attribute: 'aqf3_cert') }
@@ -181,6 +188,38 @@ describe BooleanDsl::Parser do
           left: { integer: "16" },
           comparison_operator: "!=",
           right: { integer: "9565" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('[3,4] includes 3')).to eq(
+          left: { array: [{ integer: "3" },{ integer: "4" }] },
+          comparison_operator: "includes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('epsilon includes 3')).to eq(
+          left: { attribute: "epsilon" },
+          comparison_operator: "includes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('[3,4] excludes 3')).to eq(
+          left: { array: [{ integer: "3" },{ integer: "4" }] },
+          comparison_operator: "excludes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('epsilon excludes 3')).to eq(
+          left: { attribute: "epsilon" },
+          comparison_operator: "excludes",
+          right: { integer: "3" }
         )
       end
     end
