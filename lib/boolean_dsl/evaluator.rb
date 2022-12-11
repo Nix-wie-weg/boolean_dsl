@@ -1,3 +1,5 @@
+require 'bigdecimal'
+
 class BooleanDsl::Evaluator
   attr_reader :parser, :expression, :context
 
@@ -28,8 +30,14 @@ class BooleanDsl::Evaluator
       end
     elsif tree.key?(:negation)
       !evaluate(tree[:negation])
+    elsif tree.key?(:array)
+      tree[:array].map { |element| evaluate(element) }
     elsif tree.key?(:string)
       tree[:string]
+    elsif tree.key?(:percentage)
+      BigDecimal(tree[:percentage].to_s.chop) / 100
+    elsif tree.key?(:decimal)
+      BigDecimal(tree[:decimal])
     elsif tree.key?(:integer)
       Integer(tree[:integer], 10)
     end
@@ -55,6 +63,10 @@ class BooleanDsl::Evaluator
       left > right
     when '>='
       left >= right
+    when 'includes'
+      left.include?(right)
+    when 'excludes'
+      !left.include?(right)
     end
   end
 

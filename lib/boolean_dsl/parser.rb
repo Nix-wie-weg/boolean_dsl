@@ -4,10 +4,20 @@ class BooleanDsl::Parser < Parslet::Parser
   rule(:space?) { space.maybe }
 
   # Literals
-  rule(:integer) { match('[0-9]').repeat(1).as(:integer) >> space? }
+  rule(:sign) { match('[+-]') }
+  rule(:digits) { match('[0-9]').repeat(1) }
+  rule(:decimal_fragment) { digits >> str(".") >> digits }
+
+  rule(:integer) { (sign.maybe >> digits).as(:integer) >> space? }
+  rule(:decimal) { (sign.maybe >> decimal_fragment).as(:decimal) >> space? }
+  rule(:percentage) { (sign.maybe >> (decimal_fragment | digits) >> str("%")).as(:percentage) >> space? }
 
   rule(:string_content) { (str("'").absent? >> any).repeat }
   rule(:string) { str("'") >> string_content.as(:string) >> str("'") >> space? }
+
+  rule(:array) { str('[') >> space? >> array_list.repeat(0,1).as(:array) >> str(']') >> space? }
+  rule(:array_list) { array_element >> (str(',') >> space? >> array_element).repeat }
+  rule(:array_element) { integer | decimal | string }
 
   rule(:attribute) do
     (match('[A-Za-z_]') >> match('[A-Za-z_0-9]').repeat >> str('?').maybe).as(:attribute) >> space?
@@ -17,7 +27,7 @@ class BooleanDsl::Parser < Parslet::Parser
   rule(:negation) { str('!') >> attribute.as(:negation) }
 
   # Elements
-  rule(:element) { negation | integer | string | attribute }
+  rule(:element) { negation | percentage | decimal | integer | string | array | attribute }
 
   # Booleans are rules that will evaluate to a true or false result
   rule(:boolean) { value_comparison | negation | attribute }
@@ -25,8 +35,9 @@ class BooleanDsl::Parser < Parslet::Parser
 
   # Operators (Comparison)
   rule(:comparison_operator) do
-    (str('==') | str('!=') | str('<=') | str('>=') | str('<') | str('>')).as(:comparison_operator) >> space?
+    (str('==') | str('!=') | str('<=') | str('>=') | str('<') | str('>') | str('includes') | str('excludes')).as(:comparison_operator) >> space?
   end
+  rule(:inclusion_comparison) { (array | attribute).as(:left) >> comparison_operator >> element.as(:right) >> space? }
   rule(:value_comparison) { element.as(:left) >> comparison_operator >> element.as(:right) >> space? }
 
   # Operators (Boolean)
@@ -35,7 +46,7 @@ class BooleanDsl::Parser < Parslet::Parser
 
   rule(:parens) { str('(') >> expression.maybe.as(:expression) >> space? >> str(')') >> space? }
 
-  rule(:expression) { boolean_comparison | parens | value_comparison | element }
+  rule(:expression) { boolean_comparison | parens | inclusion_comparison | value_comparison | element }
   root(:expression)
 end
 

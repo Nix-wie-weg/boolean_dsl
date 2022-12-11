@@ -3,12 +3,37 @@ require 'spec_helper'
 describe BooleanDsl::Parser do
   let(:parser) { described_class.new }
 
-  context 'numeric literals' do
+  context 'integer literals' do
     specify { expect(parser.parse_with_debug('0')).to eq(integer: "0") }
     specify { expect(parser.parse_with_debug('1')).to eq(integer: "1") }
     specify { expect(parser.parse_with_debug('12')).to eq(integer: "12") }
     specify { expect(parser.parse_with_debug('0 ')).to eq(integer: "0") }
     specify { expect(parser.parse_with_debug('12   ')).to eq(integer: "12") }
+    specify { expect(parser.parse_with_debug('-12')).to eq(integer: "-12") }
+    specify { expect(parser.parse_with_debug('+12')).to eq(integer: "+12") }
+  end
+
+  context 'decimal literals' do
+    specify { expect(parser.parse_with_debug('0.00')).to eq(decimal: "0.00") }
+    specify { expect(parser.parse_with_debug('1.23')).to eq(decimal: "1.23") }
+    specify { expect(parser.parse_with_debug('1.23  ')).to eq(decimal: "1.23") }
+    specify { expect(parser.parse_with_debug('-1.23')).to eq(decimal: "-1.23") }
+    specify { expect(parser.parse_with_debug('+1.23')).to eq(decimal: "+1.23") }
+    specify { expect(parser.parse_with_debug('-1.23  ')).to eq(decimal: "-1.23") }
+  end
+
+  context 'percentage literals' do
+    specify { expect(parser.parse_with_debug('0%')).to eq(percentage: "0%") }
+    specify { expect(parser.parse_with_debug('12%')).to eq(percentage: "12%") }
+    specify { expect(parser.parse_with_debug('12.34%')).to eq(percentage: "12.34%") }
+    specify { expect(parser.parse_with_debug('0% ')).to eq(percentage: "0%") }
+    specify { expect(parser.parse_with_debug('12%  ')).to eq(percentage: "12%") }
+    specify { expect(parser.parse_with_debug('12.34%  ')).to eq(percentage: "12.34%") }
+    specify { expect(parser.parse_with_debug('-12%')).to eq(percentage: "-12%") }
+    specify { expect(parser.parse_with_debug('+12%')).to eq(percentage: "+12%") }
+    specify { expect(parser.parse_with_debug('-12.34%')).to eq(percentage: "-12.34%") }
+    specify { expect(parser.parse_with_debug('+12.34%')).to eq(percentage: "+12.34%") }
+    specify { expect(parser.parse_with_debug('-12.34%  ')).to eq(percentage: "-12.34%") }
   end
 
   context 'string literals' do
@@ -17,6 +42,13 @@ describe BooleanDsl::Parser do
     specify { expect(parser.parse_with_debug("'potato'")).to eq(string: 'potato') }
     specify { expect(parser.parse_with_debug("'I am, 12345, \"you\" are'")).to eq(string: 'I am, 12345, "you" are') }
     specify { expect(parser.parse_with_debug("'I am, 12345, \"you\" are'   ")).to eq(string: 'I am, 12345, "you" are') }
+  end
+
+  context 'arrays' do
+    specify { expect(parser.parse_with_debug("[]")).to eq(array: []) }
+    specify { expect(parser.parse_with_debug("[1]")).to eq(array: [{ integer: "1" }]) }
+    specify { expect(parser.parse_with_debug("[1,2]")).to eq(array: [{ integer: "1" }, { integer: "2" }]) }
+    specify { expect(parser.parse_with_debug("['alpha','beta']")).to eq(array: [{ string: "alpha" }, { string: "beta" }]) }
   end
 
   context 'attributes' do
@@ -128,10 +160,10 @@ describe BooleanDsl::Parser do
       end
 
       specify do
-        expect(parser.parse_with_debug('16 < 9565  ')).to eq(
-          left: { integer: "16" },
+        expect(parser.parse_with_debug('16.5 < 9565.8  ')).to eq(
+          left: { decimal: "16.5" },
           comparison_operator: "<",
-          right: { integer: "9565" }
+          right: { decimal: "9565.8" }
         )
       end
 
@@ -144,10 +176,50 @@ describe BooleanDsl::Parser do
       end
 
       specify do
+        expect(parser.parse_with_debug('25% <= 50%  ')).to eq(
+          left: { percentage: "25%" },
+          comparison_operator: "<=",
+          right: { percentage: "50%" }
+        )
+      end
+
+      specify do
         expect(parser.parse_with_debug('16 != 9565  ')).to eq(
           left: { integer: "16" },
           comparison_operator: "!=",
           right: { integer: "9565" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('[3,4] includes 3')).to eq(
+          left: { array: [{ integer: "3" },{ integer: "4" }] },
+          comparison_operator: "includes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('epsilon includes 3')).to eq(
+          left: { attribute: "epsilon" },
+          comparison_operator: "includes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('[3,4] excludes 3')).to eq(
+          left: { array: [{ integer: "3" },{ integer: "4" }] },
+          comparison_operator: "excludes",
+          right: { integer: "3" }
+        )
+      end
+
+      specify do
+        expect(parser.parse_with_debug('epsilon excludes 3')).to eq(
+          left: { attribute: "epsilon" },
+          comparison_operator: "excludes",
+          right: { integer: "3" }
         )
       end
     end
