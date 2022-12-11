@@ -30,6 +30,8 @@ class BooleanDsl::Evaluator
       end
     elsif tree.key?(:negation)
       !evaluate(tree[:negation])
+    elsif tree.key?(:array)
+      tree[:array].map { |element| evaluate(element) }
     elsif tree.key?(:string)
       tree[:string]
     elsif tree.key?(:percentage)
@@ -61,6 +63,10 @@ class BooleanDsl::Evaluator
       left > right
     when '>='
       left >= right
+    when 'includes'
+      left.include?(right)
+    when 'excludes'
+      !left.include?(right)
     end
   end
 

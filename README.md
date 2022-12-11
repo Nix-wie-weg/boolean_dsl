@@ -65,6 +65,10 @@ Our DSL consists of these components:
       43.56%
       -20%
 
+* **array**, a comma separated list of integer, decimal or string elements wrapped by [] (square brackets)
+
+      [1,2,3]
+
 * **attribute** reference, a sequence of [A-z\_][A-z0-9\_]\*[?]. When an attribute reference is evaluated,
   the context.send(attribute_reference) is called, and the result is used as the attribute's value.
   An attribute may optionally be prefixed by a ! (exclamation point). The result is the logial NOT of the
@@ -77,9 +81,9 @@ Our DSL consists of these components:
       !Apple_Tree
       !what_i5_YOUR_name?
 
-* **element** is one of a **string**, **percentage**, **decimal**, **integer**, or **attribute**.
+* **element** is one of a **string**, **percentage**, **decimal**, **integer**, **array** or **attribute**.
 
-* **comparison** consists of an **element**, followed by one of ==, !=, <, >, <=, >=, (the operator)
+* **comparison** consists of an **element**, followed by one of ==, !=, <, >, <=, >=, includes, excludes (the operator)
   followed by another **element**. When a comparison is evaluated, the 2 elements are compared using the operater
   supplied. The comparison follows Ruby evaluation rules. The result is used as the result of the comparison. Examples:
 
@@ -87,6 +91,7 @@ Our DSL consists of these components:
       'test' == beta
       alpha != delta
       8 >= 1
+      [1,2,3] includes 3
 
 * **boolean** expression consists of a left side, followed by one of _and_, _or_ (the operator),
   followed by a right side.

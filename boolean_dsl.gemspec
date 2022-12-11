@@ -14,7 +14,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = '>= 1.3.6'
 
-  s.add_development_dependency 'bundler', '~> 1.0'
+  s.add_development_dependency 'bundler'
   s.add_development_dependency 'rspec', '~> 2.14'
   s.add_development_dependency 'factory_bot', '~> 4.4'
   s.add_development_dependency 'cane', '~> 2.6'
